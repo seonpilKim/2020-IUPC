@@ -1,4 +1,4 @@
-[A] 연길이의 이상형
+[A] 연길이의 이상형 (https://www.acmicpc.net/problem/20540)
 
 문제
 ----
