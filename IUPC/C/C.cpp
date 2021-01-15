@@ -34,30 +34,28 @@ public:
     }
 
     void Delete(string name) {
-        int n = 0;
-        if (this->pictures.size() < 1) return;
+        if (this->pictures.size() < 1) cout << 0 << "\n";
         else if (name == "-1") {
             this->pictures.erase(this->pictures.begin());
             this->size_pic--;
-            n++;
+            cout << 1 << "\n";
         }
         else if (name == "0") {
-            n = this->pictures.size();
+            cout << this->pictures.size() << "\n";
             this->pictures.clear();
             this->size_pic = 0;
         }
         else if (name == "1") {
             this->pictures.pop_back();
             this->size_pic--;
-            n++;
+            cout << 1 << "\n";
         }
         else {
             int idx = Search(name);
             if (idx != EOF) this->pictures.erase(this->pictures.begin() + idx);
             this->size_pic--;
-            n++;
+            cout << 1 << "\n";
         }
-        cout << n << "\n";
     }
 
     int Search(string name) {
@@ -93,10 +91,11 @@ public:
     }
 
     void Remove(string name) {
-        if (name == "-1") {
+        if (name == "-1" && this->cur->children.size() > 1) {
             this->cnt_a = this->cur->children[0]->size_alb + 1;
             this->cnt_p = this->cur->children[0]->size_pic;
             Counting(this->cur->children[0]);
+            this->cur->size_alb--;
             this->cur->children.erase(this->cur->children.begin());
             cout << cnt_a << " " << cnt_p << "\n";
             return;
@@ -106,14 +105,19 @@ public:
             this->cnt_p = 0;
             for (int i = 0; i < this->cur->children.size(); i++) {
                 Counting(this->cur->children[i]);
+                this->cnt_a += this->cur->children[i]->size_alb;
+                this->cnt_p += this->cur->children[i]->size_pic;
             }
+            if (this->cur->children.size() > 1) this->cur->children.clear();
             cout << cnt_a << " " << cnt_p << "\n";
+            this->cur->size_alb = 0;
             return;
         }
-        else if (name == "1") {
+        else if (name == "1" && this->cur->children.size() > 1) {
             this->cnt_a = this->cur->children[this->cur->children.size() - 1]->size_alb + 1;
             this->cnt_p = this->cur->children[this->cur->children.size() - 1]->size_pic;
             Counting(this->cur->children[this->cur->children.size() - 1]);
+            this->cur->size_alb--;
             this->cur->children.pop_back();
             cout << cnt_a << " " << cnt_p << "\n";
             return;
@@ -123,7 +127,8 @@ public:
                 if (this->cur->children[i]->name == name) {
                     this->cnt_a = this->cur->children[i]->size_alb + 1;
                     this->cnt_p = this->cur->children[i]->size_pic;
-                    Counting(this->cur);
+                    Counting(this->cur->children[i]);
+                    this->cur->size_alb--;
                     this->cur->children.erase(this->cur->children.begin() + i);
                     cout << cnt_a << " " << cnt_p << "\n";
                     return;
@@ -174,8 +179,6 @@ public:
             }
         }
     }
-
-
 };
 
 int main() {
