@@ -6,7 +6,7 @@ using namespace std;
 
 class Album {
 public:
-    vector<Album*> children;
+    vector<Album*> albums;
     Album* parent;
     vector<string> pictures;
     string name;
@@ -30,7 +30,7 @@ public:
             this->size_pic++;
             sort(this->pictures.begin(), this->pictures.end());
         }
-        else cout << "duplicated photo name\n";     
+        else if (Search(name) > EOF) cout << "duplicated photo name\n";     
     }
 
     void Delete(string name) {
@@ -79,58 +79,66 @@ public:
         this->ser = NULL;
     }
 
+    static bool compare(Album* a, Album* b) {
+        return a->name < b->name;
+    }
+
     void Make(string name) {
-        for (int i = 0; i < this->cur->children.size(); i++) {
-            if (this->cur->children[i]->name == name) return;
+        for (int i = 0; i < this->cur->albums.size(); i++) {
+            if (this->cur->albums[i]->name == name) {
+                cout << "duplicated album name\n";
+                return;
+            }
         }
         Album* newAlbum = new Album(name);
         newAlbum->parent = this->cur;
-        this->cur->children.push_back(newAlbum);
-        sort(this->cur->children.begin(), this->cur->children.end());
+        this->cur->albums.push_back(newAlbum);
+        sort(this->cur->albums.begin(), this->cur->albums.end(), compare);
         this->cur->size_alb++;
     }
 
     void Remove(string name) {
-        if (name == "-1" && this->cur->children.size() > 1) {
-            this->cnt_a = this->cur->children[0]->size_alb + 1;
-            this->cnt_p = this->cur->children[0]->size_pic;
-            Counting(this->cur->children[0]);
+        if (this->cur->albums.size() == 0) cout << "0 0\n";
+        else if (name == "-1") {
+            this->cnt_a = this->cur->albums[0]->size_alb + 1;
+            this->cnt_p = this->cur->albums[0]->size_pic;
+            Counting(this->cur->albums[0]);
             this->cur->size_alb--;
-            this->cur->children.erase(this->cur->children.begin());
-            cout << cnt_a << " " << cnt_p << "\n";
+            this->cur->albums.erase(this->cur->albums.begin());
+            cout << this->cnt_a << " " << this->cnt_p << "\n";
             return;
         }
         else if (name == "0") {
             this->cnt_a = this->cur->size_alb;
             this->cnt_p = 0;
-            for (int i = 0; i < this->cur->children.size(); i++) {
-                Counting(this->cur->children[i]);
-                this->cnt_a += this->cur->children[i]->size_alb;
-                this->cnt_p += this->cur->children[i]->size_pic;
+            for (int i = 0; i < this->cur->albums.size(); i++) {
+                Counting(this->cur->albums[i]);
+                this->cnt_a += this->cur->albums[i]->size_alb;
+                this->cnt_p += this->cur->albums[i]->size_pic;
             }
-            if (this->cur->children.size() > 1) this->cur->children.clear();
-            cout << cnt_a << " " << cnt_p << "\n";
+            this->cur->albums.clear();
+            cout << this->cnt_a << " " << this->cnt_p << "\n";
             this->cur->size_alb = 0;
             return;
         }
-        else if (name == "1" && this->cur->children.size() > 1) {
-            this->cnt_a = this->cur->children[this->cur->children.size() - 1]->size_alb + 1;
-            this->cnt_p = this->cur->children[this->cur->children.size() - 1]->size_pic;
-            Counting(this->cur->children[this->cur->children.size() - 1]);
+        else if (name == "1") {
+            this->cnt_a = this->cur->albums[this->cur->albums.size() - 1]->size_alb + 1;
+            this->cnt_p = this->cur->albums[this->cur->albums.size() - 1]->size_pic;
+            Counting(this->cur->albums[this->cur->albums.size() - 1]);
             this->cur->size_alb--;
-            this->cur->children.pop_back();
-            cout << cnt_a << " " << cnt_p << "\n";
+            this->cur->albums.pop_back();
+            cout << this->cnt_a << " " << this->cnt_p << "\n";
             return;
         }
         else {
-            for (int i = 0; i < this->cur->children.size(); i++) {
-                if (this->cur->children[i]->name == name) {
-                    this->cnt_a = this->cur->children[i]->size_alb + 1;
-                    this->cnt_p = this->cur->children[i]->size_pic;
-                    Counting(this->cur->children[i]);
+            for (int i = 0; i < this->cur->albums.size(); i++) {
+                if (this->cur->albums[i]->name == name) {
+                    this->cnt_a = this->cur->albums[i]->size_alb + 1;
+                    this->cnt_p = this->cur->albums[i]->size_pic;
+                    Counting(this->cur->albums[i]);
                     this->cur->size_alb--;
-                    this->cur->children.erase(this->cur->children.begin() + i);
-                    cout << cnt_a << " " << cnt_p << "\n";
+                    this->cur->albums.erase(this->cur->albums.begin() + i);
+                    cout << this->cnt_a << " " << this->cnt_p << "\n";
                     return;
                 }
             }
@@ -138,11 +146,11 @@ public:
     }
 
     void Counting(Album* ptr) {
-        for (int i = 0; i < ptr->children.size(); i++) {
-            if (ptr->children[i] != NULL) {
-                Counting(ptr->children[i]);
-                this->cnt_a += ptr->children[i]->size_alb;
-                this->cnt_p += ptr->children[i]->size_pic;
+        for (int i = 0; i < ptr->albums.size(); i++) {
+            if (ptr->albums[i] != NULL) {
+                Counting(ptr->albums[i]);
+                this->cnt_a += ptr->albums[i]->size_alb;
+                this->cnt_p += ptr->albums[i]->size_pic;
             }
         }
     }
@@ -165,17 +173,13 @@ public:
     }
 
     void Search(Album* ptr, string name) {
-        if (ptr->name == name) {
-            this->ser = ptr;
-            return;
-        }
-        for (int i = 0; i < ptr->children.size(); i++) {
-            if (ptr->children[i] != NULL) {
-                if (ptr->children[i]->name == name) {
-                    this->ser = ptr->children[i];
+        for (int i = 0; i < ptr->albums.size(); i++) {
+            if (ptr->albums[i] != NULL) {
+                if (ptr->albums[i]->name == name) {
+                    this->ser = ptr->albums[i];
                     return;
                 }
-                Search(ptr->children[i], name);
+                Search(ptr->albums[i], name);
             }
         }
     }
@@ -185,6 +189,10 @@ int main() {
     int N;
     string S, str;
     Computer pc;
+
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
 
     cin >> N;
 
